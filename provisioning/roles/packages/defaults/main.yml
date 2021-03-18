@@ -1,0 +1,4 @@
+packages:
+  - lsof
+  - python3
+  - python-setuptools

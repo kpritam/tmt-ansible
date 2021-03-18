@@ -18,13 +18,17 @@ servers=[
 Vagrant.configure(2) do |config|
     servers.each do |machine|
         config.vm.define machine[:hostname] do |node|
-            node.ssh.insert_key = false
-            node.vm.box = machine[:box]
-            node.vm.hostname = machine[:hostname]
-            node.vm.network "private_network", ip: machine[:ip]
-            node.vm.provider "virtualbox" do |vb|
-                vb.customize ["modifyvm", :id, "--memory", machine[:ram]]
-            end
+          node.ssh.insert_key = false
+          node.vm.box = machine[:box]
+          node.vm.hostname = machine[:hostname]
+          node.vm.network "private_network", ip: machine[:ip]
+          node.vm.provider "virtualbox" do |vb|
+              vb.customize ["modifyvm", :id, "--memory", machine[:ram]]
+          end
+
+          if machine[:hostname] == "seed-1"
+            node.vm.network "forwarded_port", guest: 9999, host: 9999
+          end
 
           # Only execute once the Ansible provisioner,
           # when all the machines are up and ready.
@@ -33,7 +37,7 @@ Vagrant.configure(2) do |config|
               # Disable default limit to connect to all the machines
               ansible.limit = "all"
               ansible.verbose = "v"
-              ansible.playbook = "playbook.yml"
+              ansible.playbook = "provisioning/playbook.yml"
             end
           end
         end

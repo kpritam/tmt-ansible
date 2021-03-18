@@ -1,0 +1,31 @@
+- name: Install packages
+  yum:
+    name: "{{ packages }}"
+    state: latest
+  become: true
+  tags:
+    - packages
+
+- name: Install python packages
+  pip:
+    name: httpie
+    executable: pip3
+  become: true
+
+- name: Download Coursier binary
+  get_url:
+    url: https://git.io/coursier-cli-linux
+    dest: ~/cs
+    mode: 0700
+  tags:
+    - packages
+
+- name: Install Coursier
+  shell: |
+    ~/cs install cs
+    ~/cs setup --jvm 11 -y
+    ~/cs channel --add https://raw.githubusercontent.com/tmtsoftware/osw-apps/master/apps.prod.json
+    echo "export PATH=\"$PATH:/home/vagrant/.local/share/coursier/bin\"" >> ~/.bashrc
+    . ~/.bashrc
+  tags:
+    - packages

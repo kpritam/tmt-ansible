@@ -1,0 +1,28 @@
+---
+- hosts: all
+  gather_facts: no
+  roles:
+    - packages
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Start Location Service
+      shell: cs launch location-server:3.0.1
+      args:
+        executable: /bin/bash
+      environment:
+        CLUSTER_SEEDS: "192.168.100.10:3552"
+        INTERFACE_NAME: "eth1"
+        TMT_LOG_HOME: "/tmp"
+        MANAGEMENT_PORT: 9999
+      async: 300
+      poll: 10
+      tags:
+        - ls
+      register: result_async
+
+    - name: Check command
+      async_status: jid="{{ result_async.ansible_job_id }}"
+      register: result
+      failed_when: result.finished != 1 or "Finished 'command'" not in result.stdout
